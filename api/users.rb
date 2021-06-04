@@ -43,23 +43,19 @@ get "#{APIPREFIX}/users/:user_id/active_threads" do |user_id|
   if not group_ids.empty?
     threads = get_group_id_criteria(threads, group_ids)
   end
-
-  num_pages = [1, (threads.count / per_page.to_f).ceil].max
-  page = [num_pages, [1, page].max].min
-
-  sorted_threads = threads.sort_by {|t| active_thread_ids.index(t.id)}
-  paged_threads = sorted_threads[(page - 1) * per_page, per_page]
-
-  presenter = ThreadListPresenter.new(paged_threads, user, params[:course_id])
-  collection = presenter.to_hash
-
-  json_output = nil
-  json_output = {
-  collection: collection,
-  num_pages: num_pages,
-  page: page,
-  }.to_json
-  json_output
+  
+  handle_threads_query(
+    threads,
+    params["user_id"],
+    params["course_id"],
+    get_group_ids_from_params(params),
+    value_to_boolean(params["flagged"]),
+    value_to_boolean(params["unread"]),
+    value_to_boolean(params["unanswered"]),
+    params["sort_key"],
+    params["page"],
+    params["per_page"]
+  ).to_json
 
 end
 
